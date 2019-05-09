@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Список користувачів</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>Список користувачів</h2>
+    <form name="userForm">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group">
+            <label for="first-name">Ім'я:</label>
+            <input class="form-control" name="first_name" />
+        </div>
+        <div class="form-group">
+            <label for="last-name">Прізвище:</label>
+            <input class="form-control" name="last_name" />
+        </div>
+        <div class="panel-body">
+            <button type="submit" class="btn btn-sm btn-primary">Зберегти</button>
+        </div>
+    </form>
+    <table class="table table-condensed table-striped table-bordered">
+        <tr>
+            <th>Id</th>
+            <th>Ім'я</th>
+            <th>Прізвище</th>
+            <th>Delete</th>
+            <th>Edit</th>
+        </tr>
+    </table>
+</div>
+
+
+<script>
+    // Отримання всіх користувачів
+    function getUsers() {
+        $.ajax({
+            url: "/users",
+            type: "GET",
+            contentType: "application/json",
+            success: function (users) {
+                var rows = "";
+                $.each(users, function (index, user) {
+                    rows += row(user);
+                })
+                $("table tbody").append(rows);
+            }
+        });
+    }
+
+    // Отримання одного користувача
+    function getUser(id) {
+        $.ajax({
+            url: "/users/"+id,
+            type: "GET",
+            contentType: "application/json",
+            success: function (user) {
+                var form = document.forms["userForm"];
+                form.elements["id"].value = user._id;
+                form.elements["first_name"].value = user.firstName;
+                form.elements["last_name"].value = user.lastName;
+            }
+        });
+    }
+
+    // Додавання користувача
+    function addUser(firstName, lastName) {
+        $.ajax({
+            url: "/users",
+            contentType: "application/json",
+            method: "POST",
+            data: JSON.stringify({
+                firstName: firstName,
+                lastName: lastName
+            }),
+            success: function (user) {
+                $("table").append(row(user));
+            }
+        })
+    }
+
+
+    function updateUser(userId, firstName, lastName) {
+        $.ajax({
+            url: "/users",
+            contentType: "application/json",
+            method: "PUT",
+            data: JSON.stringify({
+                id: userId,
+                firstName: firstName,
+                lastName: lastName
+            }),
+            success: function (user) {
+                reset();
+                $("tr[data-rowid='" + user._id + "']").replaceWith(row(user));
+            }
+        })
+    }
+
+    // Скидання даних форми
+    function reset() {
+        var form = document.forms["userForm"];
+        form.reset();
+        form.elements["id"].value = 0;
+    }
+
+    // Створення рядка для таблиці
+    var row = function (user) {
+        return "<tr data-rowid='" + user._id + "'>" +
+                "<td>" + user._id + "</td>" +
+                "<td>" + user.firstName + "</td> <td>" + user.lastName + "</td>" +
+                "<td><button class='btn editLink' data-id='" + user._id + "'>Редагувати</button></td>" +
+                "<td><button class='btn removeLink' data-id='" + user._id + "'>Видалити</button></td>" +
+                "</tr>";
+    }
+
+    // Відправка форми
+    $("form").submit(function (e) {
+        e.preventDefault();
+        var id = this.elements["id"].value;
+        var firstName = this.elements["first_name"].value;
+        var lastName = this.elements["last_name"].value;
+        if (id == 0) {
+            addUser(firstName, lastName);
+        } else {
+            updateUser(id, firstName, lastName);
+        }
+
+    });
+
+    //Видалення користувача
+    function deleteUser(id) {
+        $.ajax({
+            url: "/users/"+id,
+            contentType: "application/json",
+            method: "DELETE",
+            success: function (user) {
+                console.log(user);
+                $("tr[data-rowid='" + user._id + "']").remove();
+            }
+        })
+    }
+
+    $("body").on("click", ".removeLink", function () {
+        var id = $(this).data("id");
+        deleteUser(id);
+    });
+    $("body").on("click", ".editLink", function () {
+        var id = $(this).data("id");
+        getUser(id);
+    })
+    // Завантаження користувачів
+    getUsers();
+</script>
+</body>
+</html>
