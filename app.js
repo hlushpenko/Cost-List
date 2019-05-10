@@ -14,7 +14,7 @@ app.set("view engine", "hbs");
 //Здійснюємо підключення
 mongoClient.connect((err, client) => {
     if (err) throw err;
-    app.locals.collection = client.db("mydb").collection("users");
+    app.locals.collection = client.db("mydb").collection("costs");
     dbClient = client;
     app.listen(3000, () => {
         console.log("Listening on 3000 port");
@@ -27,63 +27,63 @@ app.get("/", (req, res) => {
 })
 
 //Отримуємо список користувачів
-app.get("/users", (req, res) => {
+app.get("/costs", (req, res) => {
     const collection = app.locals.collection;
     collection
         .find()
-        .toArray(function(err, users) {
+        .toArray(function(err, costs) {
             if (err) throw err;
-            res.send(users);
+            res.send(costs);
         });
 });
 
-//Заносимо нового користувача в базу
-app.post("/users", jsonParser, function(req, res) {
+//Заносимо нову витрату в базу
+app.post("/costs", jsonParser, function(req, res) {
     if (!req.body) return res.sendStatus(400);
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
-    const user = {firstName: firstName, lastName: lastName};
+    const costName = req.body.costName;
+    const costDescription = req.body.costDescription;
+    const cost = {costName: costName, costDescription: costDescription};
     const collection = app.locals.collection;
-    collection.insertOne(user, function(err, result) {
+    collection.insertOne(cost, function(err, result) {
         if (err) throw err;
         console.log(result);
-        res.send(user);
+        res.send(cost);
     })
 });
 
-//Отримуємо дані про користувача з бази
-app.get("/users/:id", function(req, res){
+//Отримуємо дані про витрати з бази
+app.get("/costs/:id", function(req, res){
     const id = new objectId(req.params.id);
     const collection = app.locals.collection;
-    collection.findOne({_id: id}, function(err, user){
+    collection.findOne({_id: id}, function(err, cost){
         if(err) throw err;
-        res.send(user);
+        res.send(cost);
     });
 });
 
-app.put("/users", jsonParser, function(req, res){
+app.put("/costs", jsonParser, function(req, res){
     if(!req.body) return res.sendStatus(400);
     const id = new objectId(req.body.id);
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
+    const costName = req.body.costName;
+    const costDescription = req.body.costDescription;
     const collection = req.app.locals.collection;
-    collection.findOneAndUpdate({_id: id}, { $set: {firstName: firstName, lastName: lastName}},
+    collection.findOneAndUpdate({_id: id}, { $set: {costName: costName, costDescription: costDescription}},
         {returnOriginal: false },function(err, result){
 
             if(err) return console.log(err);
-            const user = result.value;
-            res.send(user);
+            const cost = result.value;
+            res.send(cost);
         });
 });
 
-//Видаляємо користувача з бази даних
-app.delete("/users/:id", function(req, res) {
+//Видаляємо запис з бази даних
+app.delete("/costs/:id", function(req, res) {
     const id = new objectId(req.params.id);
     const collection = app.locals.collection;
     collection.findOneAndDelete({_id: id}, function(err, result){
         if(err) throw err;
-        let user = result.value;
-        res.send(user);
+        let cost = result.value;
+        res.send(cost);
     });
 });
 
