@@ -7,7 +7,7 @@ const objectId = mongodb.ObjectID;
 
 var app = express();
 const jsonParser = express.json();
-let dbClient;
+var dbClient;
 
 //Визначаємо рушій по замовчуванню для HTML
 app.set("view engine", "hbs");
@@ -83,7 +83,7 @@ app.delete("/costs/:id", function(req, res) {
     const collection = app.locals.collection;
     collection.findOneAndDelete({_id: id}, function(err, result){
         if(err) throw err;
-        let cost = result.value;
+        var cost = result.value;
         res.send(cost);
     });
 });
