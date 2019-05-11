@@ -13,14 +13,16 @@ var dbClient;
 app.set("view engine", "hbs");
 
 //Здійснюємо підключення
-mongoClient.connect((err, client) => {
+mongoClient.connect(mongoClientConnect);
+
+function mongoClientConnect(err, client) {
     if (err) throw err;
     app.locals.collection = client.db("mydb").collection("costs");
     dbClient = client;
     app.listen(3000, () => {
         console.log("Listening on 3000 port");
     })
-});
+}
 
 //Обробляємо http-запит головної сторінки
 app.get("/", (req, res) => {
