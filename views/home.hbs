@@ -3,41 +3,57 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Coast list</title>
+    <title>C.L.</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 </head>
 <body>
 <div class="container">
     <h2>Список витрат та доходів</h2>
-    <form name="cost">
-        <input type="hidden" name="id" value="0" />
+    <form name="costForm">
+        <input type="hidden" name="id" value="0" required/>
         <div class="form-group">
-            <label for="cost-name">Ім'я транзакції:</label>
-            <input class="form-control" name="cost_name" />
+            <input required class="form-control" name="cost_name" placeholder="Назва"/>
+        </div>
+
+        <div class="form-group">
+            <input required class="form-control" type="number" name="cost_sum" min="1" placeholder="Сума"/>
         </div>
         <div class="form-group">
-            <label for="cost-description">Опис:</label>
-            <input class="form-control" name="cost_description" />
+            <select required class="form-control" name="cost_category">
+                <option value="" selected disabled hidden>Вибрати категорію</option>
+                <option>Їжа</option>
+                <option>Транспорт</option>
+                <option>Комунальні послуги</option>
+                <option>Техніка</option>
+                <option>Дрібні витрати</option>
+                <option>Інше</option>
+            </select>
         </div>
-        <div class="panel-body">
+        <div class="form-group">
+            <textarea required class="form-control rounded-0" name="cost_description" placeholder="Опис"rows="3"></textarea>
+        </div>
+        <div class="form-group">
             <button type="submit" class="btn btn-sm btn-primary">Зберегти</button>
+            <button type="reset"  class="btn btn-sm btn-primary">Очистити</button>
         </div>
+
     </form>
     <table class="table table-condensed table-striped table-bordered">
         <tr>
-            <th>Id</th>
-            <th>Назва</th>
+            <th width="100px">Категорія</th>
+            <th width="250px">Назва</th>
+            <th width="55px">Сума</th>
             <th>Опис</th>
-            <th>Редагувати</th>
-            <th>Видалити</th>
+            <th width="30px"></th>
+            <th width="30px"></th>
         </tr>
     </table>
 </div>
 
 
 <script>
-    // Отримання всіх користувачів
+    // Отримання всіх транзакцій
     function getCosts() {
         $.ajax({
             url: "/costs",
@@ -47,13 +63,13 @@
                 let rows = "";
                 $.each(costs, function (index, cost) {
                     rows += row(cost);
-                })
+                });
                 $("table tbody").append(rows);
             }
         });
     }
 
-    // Отримання одного користувача
+    // Отримання однієї транзакції
     function getCost(id) {
         $.ajax({
             url: "/costs/"+id,
@@ -64,19 +80,23 @@
                 form.elements["id"].value = cost._id;
                 form.elements["cost_name"].value = cost.costName;
                 form.elements["cost_description"].cost = cost.costDescription;
+                form.elements["cost_sum"].value = cost.costSum;
+                form.elements["cost_category"].cost = cost.costCategory;
             }
         });
     }
 
-    // Додавання користувача
-    function addCost(costName, costDescription) {
+    // Додавання транзакції
+    function addCost(costName, costDescription, costSum, costCategory) {
         $.ajax({
             url: "/costs",
             contentType: "application/json",
             method: "POST",
             data: JSON.stringify({
                 costName: costName,
-                costDescription: costDescription
+                costDescription: costDescription,
+                costSum: costSum,
+                costCategory: costCategory
             }),
             success: function (cost) {
                 $("table").append(row(cost));
@@ -85,7 +105,7 @@
     }
 
 
-    function updateCost(costId, costName, costDescription) {
+    function updateCost(costId, costName, costDescription, costSum, costCategory) {
         $.ajax({
             url: "/costs",
             contentType: "application/json",
@@ -93,9 +113,11 @@
             data: JSON.stringify({
                 id: costId,
                 costName: costName,
-                costDescription: costDescription
+                costDescription: costDescription,
+                costSum: costSum,
+                costCategory: costCategory
             }),
-            success: function (user) {
+            success: function (cost) {
                 reset();
                 $("tr[data-rowid='" + cost._id + "']").replaceWith(row(cost));
             }
@@ -112,12 +134,14 @@
     // Створення рядка для таблиці
     let row = function (cost) {
         return "<tr data-rowid='" + cost._id + "'>" +
-                "<td>" + cost._id + "</td>" +
-                "<td>" + cost.costName + "</td> <td>" + cost.costDescription + "</td>" +
-                "<td><button class='btn editLink' data-id='" + cost._id + "'>Редагувати</button></td>" +
-                "<td><button class='btn removeLink' data-id='" + cost._id + "'>Видалити</button></td>" +
+                "<td>" + cost.costCategory + "</td>" +
+                "<td>" + cost.costName + "</td>" +
+                "<td>" + cost.costSum + "</td>" +
+                "<td>" + cost.costDescription + "</td>" +
+                "<td><button class='btn editLink' data-id='" + cost._id + "'><img class='editBTNS' src=\"https://img.icons8.com/windows/32/000000/edit.png\"></button></td>" +
+                "<td><button class='btn removeLink' data-id='" + cost._id + "'><img class='editBTNS' src=\"https://img.icons8.com/windows/32/000000/delete.png\"></button></td>" +
                 "</tr>";
-    }
+    };
 
     // Відправка форми
     $("form").submit(function (e) {
@@ -125,15 +149,18 @@
         let id = this.elements["id"].value;
         let costName = this.elements["cost_name"].value;
         let costDescription = this.elements["cost_description"].value;
+        let costSum = this.elements["cost_sum"].value;
+        let costCategory = this.elements["cost_category"].value;
         if (id == 0) {
-            addCost(costName, costDescription);
+            addCost(costName, costDescription, costSum, costCategory);
+            reset();
         } else {
-            updateUser(id, costName, costDescription);
+            updateCost(id, costName, costDescription, costSum, costCategory);
         }
 
     });
 
-    //Видалення користувача
+    //Видалення транзакції
     function deleteCost(id) {
         $.ajax({
             url: "/costs/"+id,
@@ -153,7 +180,7 @@
     $("body").on("click", ".editLink", function () {
         let id = $(this).data("id");
         getCost(id);
-    })
+    });
     // Завантаження витрат
     getCosts();
 </script>

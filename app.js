@@ -5,9 +5,9 @@ const mongoClient = new mongodb.MongoClient("mongodb://localhost:27017/",{useNew
 const objectId = mongodb.ObjectID;
 
 
-var app = express();
+let app = express();
 const jsonParser = express.json();
-var dbClient;
+let dbClient;
 
 //Визначаємо рушій по замовчуванню для HTML
 app.set("view engine", "hbs");
@@ -25,9 +25,7 @@ function mongoClientConnect(err, client) {
 }
 
 //Обробляємо http-запит головної сторінки
-app.get("/", (req, res) => {
-    res.render("home");
-})
+app.get("/", (req, res) => res.render("home"));
 
 //Отримуємо список користувачів
 app.get("/costs", (req, res) => {
@@ -40,12 +38,16 @@ app.get("/costs", (req, res) => {
         });
 });
 
-//Заносимо нову витрату в базу
+//Заносимо нову транзакцію в базу
 app.post("/costs", jsonParser, function(req, res) {
     if (!req.body) return res.sendStatus(400);
     const costName = req.body.costName;
     const costDescription = req.body.costDescription;
-    const cost = {costName: costName, costDescription: costDescription};
+    const costSum = parseInt(req.body.costSum);
+    const costCategory = req.body.costCategory;
+    const cost =
+        {costName: costName, costDescription: costDescription, costSum: costSum, costCategory: costCategory};
+
     const collection = app.locals.collection;
     collection.insertOne(cost, function(err, result) {
         if (err) throw err;
@@ -69,10 +71,12 @@ app.put("/costs", jsonParser, function(req, res){
     const id = new objectId(req.body.id);
     const costName = req.body.costName;
     const costDescription = req.body.costDescription;
+    const costCategory = req.body.costCategory;
+    const costSum = req.body.costSum;
     const collection = req.app.locals.collection;
-    collection.findOneAndUpdate({_id: id}, { $set: {costName: costName, costDescription: costDescription}},
+    collection.findOneAndUpdate({_id: id}, { $set:
+                {costName: costName, costDescription: costDescription, costCategory: costCategory, costSum: costSum}},
         {returnOriginal: false },function(err, result){
-
             if(err) return console.log(err);
             const cost = result.value;
             res.send(cost);
@@ -85,7 +89,7 @@ app.delete("/costs/:id", function(req, res) {
     const collection = app.locals.collection;
     collection.findOneAndDelete({_id: id}, function(err, result){
         if(err) throw err;
-        var cost = result.value;
+        let cost = result.value;
         res.send(cost);
     });
 });
