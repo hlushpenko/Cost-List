@@ -2,16 +2,31 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>C.L.</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+          crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js"
+            type="text/javascript"></script>
+    <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css"
+          rel="stylesheet"
+          type="text/css" />
+
 </head>
 <body>
 <div class="container">
     <h2>Список витрат та доходів</h2>
     <form name="costForm">
         <input type="hidden" name="id" value="0" required/>
+
         <div class="form-group">
             <input required class="form-control" name="cost_name" placeholder="Назва"/>
         </div>
@@ -19,6 +34,7 @@
         <div class="form-group">
             <input required class="form-control" type="number" name="cost_sum" min="1" placeholder="Сума"/>
         </div>
+
         <div class="form-group">
             <select required class="form-control" name="cost_category">
                 <option value="" selected disabled hidden>Вибрати категорію</option>
@@ -30,27 +46,19 @@
                 <option>Інше</option>
             </select>
         </div>
+
         <div class="form-group">
             <textarea required class="form-control rounded-0" name="cost_description" placeholder="Опис"rows="3"></textarea>
         </div>
 
-
-
-
-                    <div class="form-group">
-                        <div id="filterDate2">
-
-                            <!-- Datepicker as text field -->
-                            <div class="input-group date" data-date-format="dd.mm.yyyy">
-                                <input  type="text" class="form-control" placeholder="dd.mm.yyyy">
-                                <div class="input-group-addon" >
-                                    <span class="glyphicon glyphicon-th"></span>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+        <div class="form-group">
+        <input id="datepicker" name="cost_date" required placeholder="Дата" autocomplete="off"/>
+            <script>
+                $('#datepicker').datepicker({
+                    uiLibrary: 'bootstrap4'
+                });
+            </script>
+        </div>
 
         <div class="form-group">
             <button type="submit" class="btn btn-sm btn-primary">Зберегти</button>
@@ -62,6 +70,7 @@
         <tr>
             <th width="100px">Категорія</th>
             <th width="250px">Назва</th>
+            <th width="100px">Дата</th>
             <th width="55px">Сума</th>
             <th>Опис</th>
             <th width="30px"></th>
@@ -100,13 +109,14 @@
                 form.elements["cost_name"].value = cost.costName;
                 form.elements["cost_description"].cost = cost.costDescription;
                 form.elements["cost_sum"].value = cost.costSum;
+                form.elements["cost_date"].value = cost.costDate;
                 form.elements["cost_category"].cost = cost.costCategory;
             }
         });
     }
 
     // Додавання транзакції
-    function addCost(costName, costDescription, costSum, costCategory) {
+    function addCost(costName, costDescription, costSum, costDate,costCategory) {
         $.ajax({
             url: "/costs",
             contentType: "application/json",
@@ -115,6 +125,7 @@
                 costName: costName,
                 costDescription: costDescription,
                 costSum: costSum,
+                costDate: costDate,
                 costCategory: costCategory
             }),
             success: function (cost) {
@@ -124,7 +135,7 @@
     }
 
 
-    function updateCost(costId, costName, costDescription, costSum, costCategory) {
+    function updateCost(costId, costName, costDescription, costSum, costDate,costCategory) {
         $.ajax({
             url: "/costs",
             contentType: "application/json",
@@ -134,6 +145,7 @@
                 costName: costName,
                 costDescription: costDescription,
                 costSum: costSum,
+                costDate: costDate,
                 costCategory: costCategory
             }),
             success: function (cost) {
@@ -155,6 +167,7 @@
         return "<tr data-rowid='" + cost._id + "'>" +
                 "<td>" + cost.costCategory + "</td>" +
                 "<td>" + cost.costName + "</td>" +
+                "<td>" + cost.costDate + "</td>" +
                 "<td>" + cost.costSum + "</td>" +
                 "<td>" + cost.costDescription + "</td>" +
                 "<td><button class='btn editLink' data-id='" + cost._id + "'><img class='editBTNS' src=\"https://img.icons8.com/windows/32/000000/edit.png\"></button></td>" +
@@ -169,12 +182,13 @@
         let costName = this.elements["cost_name"].value;
         let costDescription = this.elements["cost_description"].value;
         let costSum = this.elements["cost_sum"].value;
+        let costDate = this.elements["cost_date"].value;
         let costCategory = this.elements["cost_category"].value;
         if (id == 0) {
-            addCost(costName, costDescription, costSum, costCategory);
+            addCost(costName, costDescription, costSum,costDate, costCategory);
             reset();
         } else {
-            updateCost(id, costName, costDescription, costSum, costCategory);
+            updateCost(id, costName, costDescription, costSum, costDate, costCategory);
         }
 
     });

@@ -44,9 +44,11 @@ app.post("/costs", jsonParser, function(req, res) {
     const costName = req.body.costName;
     const costDescription = req.body.costDescription;
     const costSum = parseInt(req.body.costSum);
+    const costDate = req.body.costDate;
     const costCategory = req.body.costCategory;
     const cost =
-        {costName: costName, costDescription: costDescription, costSum: costSum, costCategory: costCategory};
+        {costName: costName, costDescription: costDescription, costSum: costSum,
+            costDate: costDate, costCategory: costCategory};
 
     const collection = app.locals.collection;
     collection.insertOne(cost, function(err, result) {
@@ -71,11 +73,13 @@ app.put("/costs", jsonParser, function(req, res){
     const id = new objectId(req.body.id);
     const costName = req.body.costName;
     const costDescription = req.body.costDescription;
+    const costDate = req.body.costDate;
     const costCategory = req.body.costCategory;
-    const costSum = req.body.costSum;
+    const costSum = parseInt(req.body.costSum);
     const collection = req.app.locals.collection;
     collection.findOneAndUpdate({_id: id}, { $set:
-                {costName: costName, costDescription: costDescription, costCategory: costCategory, costSum: costSum}},
+                {costName: costName, costDescription: costDescription, costCategory: costCategory,
+                    costSum: costSum, costDate:costDate}},
         {returnOriginal: false },function(err, result){
             if(err) return console.log(err);
             const cost = result.value;
